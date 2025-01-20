@@ -54,6 +54,7 @@ enum CreatureIds
     NPC_HALAZZI                         = 23577,
     NPC_NALORAKK                        = 23576,
     NPC_SPIRIT_LYNX                     = 24143,
+    NPC_AMANISHI_SAVAGE                 = 23889,
     NPC_AMANISHI_WARBRINGER             = 23580,
     NPC_AMANISHI_TRIBESMAN              = 23582,
     NPC_AMANISHI_MEDICINE_MAN           = 23581,
@@ -89,14 +90,17 @@ enum GameobjectIds
 
 enum MiscIds
 {
+    // Persistent data
     DATA_TIMED_RUN                      = 0,
+    DATA_CHEST_COUNT                    = 1,
+
     ACTION_START_TIMED_RUN              = 0,
     ACTION_START_AKILZON_GAUNTLET       = 1,
     ACTION_RESET_AKILZON_GAUNTLET       = 2,
     GROUP_TIMED_RUN                     = 1
 };
 
-uint32 constexpr PersistentDataCount = 1;
+uint32 constexpr PersistentDataCount = 2;
 
 template <class AI, class T>
 inline AI* GetZulAmanAI(T* obj)
