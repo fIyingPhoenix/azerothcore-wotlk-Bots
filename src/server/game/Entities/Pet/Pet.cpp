@@ -38,7 +38,7 @@
 #include "WorldPacket.h"
 #include "WorldSession.h"
 
-Pet::Pet(Player* owner, PetType type) : Guardian(nullptr, owner ? owner->GetGUID() : ObjectGuid::Empty, true),
+Pet::Pet(Player* owner, PetType type) : Guardian(nullptr, owner ? owner->GetGUID() : ObjectGuid::Empty),
     m_usedTalentCount(0),
     m_removed(false),
     m_owner(owner),
@@ -75,7 +75,7 @@ void Pet::AddToWorld()
     if (!IsInWorld())
     {
         ///- Register the pet for guid lookup
-        GetMap()->GetObjectsStore().Insert<Pet>(GetGUID(), this);
+        GetMap()->GetObjectsStore().Insert<Creature>(GetGUID(), this);
         Unit::AddToWorld();
         Motion_Initialize();
         AIM_Initialize();
@@ -126,7 +126,7 @@ void Pet::RemoveFromWorld()
     {
         ///- Don't call the function for Creature, normal mobs + totems go in a different storage
         Unit::RemoveFromWorld();
-        GetMap()->GetObjectsStore().Remove<Pet>(GetGUID());
+        GetMap()->GetObjectsStore().Remove<Creature>(GetGUID());
     }
 }
 
@@ -692,7 +692,7 @@ void Pet::Update(uint32 diff)
                     }
                 }
 
-                if (m_duration > 0s)
+                if (m_duration > 0ms)
                 {
                     if (m_duration > _diff)
                         m_duration -= _diff;
@@ -708,7 +708,7 @@ void Pet::Update(uint32 diff)
                 if (getPowerType() == POWER_FOCUS)
                 {
                     m_petRegenTimer -= _diff;
-                    if (m_petRegenTimer <= 0s)
+                    if (m_petRegenTimer <= 0ms)
                     {
                         m_petRegenTimer += PET_FOCUS_REGEN_INTERVAL;
                         Regenerate(POWER_FOCUS);
@@ -1026,7 +1026,7 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
     Unit* owner = GetOwner();
     if (!owner) // just to be sure, asynchronous now
     {
-        DespawnOrUnsummon(1000);
+        DespawnOrUnsummon(1s);
         return false;
     }
 
@@ -1345,11 +1345,14 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                                 SetCreateMana(28 + 10 * petlevel);
                                 SetCreateHealth(28 + 30 * petlevel);
                             }
-
-                            AddAura(SPELL_HUNTER_PET_SCALING_04, this);
+                            AddAura(SPELL_SUMMON_HEAL, this);
                             AddAura(SPELL_DK_PET_SCALING_01, this);
                             AddAura(SPELL_DK_PET_SCALING_02, this);
                             AddAura(SPELL_DK_PET_SCALING_03, this);
+                            AddAura(SPELL_NIGHT_OF_THE_DEAD_AVOIDANCE, this);
+                            AddAura(SPELL_ORC_RACIAL_COMMAND_DK, this);
+                            AddAura(SPELL_PET_SCALING_MASTER_03, this);
+                            AddAura(SPELL_PET_SCALING_MASTER_06, this);
                             break;
                         }
                     case NPC_BLOODWORM:
@@ -1401,9 +1404,9 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
         // 100% energy after summon
         SetPower(POWER_ENERGY, GetMaxPower(POWER_ENERGY));
 
-        // xinef: fixes orc death knight command racial
-        if (owner->getRace() == RACE_ORC)
-            CastSpell(this, SPELL_ORC_RACIAL_COMMAND_DK, true, nullptr, nullptr, owner->GetGUID());
+        AddAura(SPELL_ORC_RACIAL_COMMAND_DK, this);
+
+        AddAura(SPELL_RISEN_GHOUL_SELF_STUN, this);
 
         // Avoidance, Night of the Dead
         if (Aura* aur = AddAura(SPELL_NIGHT_OF_THE_DEAD_AVOIDANCE, this))
@@ -1411,13 +1414,16 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                 if (aur->GetEffect(0))
                     aur->GetEffect(0)->SetAmount(-aurEff->GetSpellInfo()->Effects[EFFECT_2].CalcValue());
 
-        AddAura(SPELL_HUNTER_PET_SCALING_04, this);
         // Added to perm ghoul by default
         if (!IsPet())
         {
             AddAura(SPELL_DK_PET_SCALING_01, this);
             AddAura(SPELL_DK_PET_SCALING_02, this);
+            AddAura(SPELL_DK_PET_SCALING_03, this);
         }
+
+        AddAura(SPELL_PET_SCALING_MASTER_03, this);
+        AddAura(SPELL_PET_SCALING_MASTER_06, this);
     }
 
     sScriptMgr->OnInitStatsForLevel(this, petlevel);

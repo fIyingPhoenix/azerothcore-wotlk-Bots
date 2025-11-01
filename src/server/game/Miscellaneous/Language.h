@@ -217,7 +217,11 @@ enum AcoreStrings
     LANG_INVALID_GAMEOBJECT_TYPE        = 176,
     LANG_GAMEOBJECT_DAMAGED             = 177,
     LANG_GRID_POSITION                  = 178,
-    // 179-185 used in other client versions
+
+    LANG_ACCOUNT_FLAGS_PINFO            = 179,
+
+    // Free 180-185
+
     LANG_TRANSPORT_POSITION             = 186,
     LANG_PROFANITY_NAME                 = 187,
     LANG_2FA_SECRET_TOO_LONG            = 188,
@@ -974,7 +978,8 @@ enum AcoreStrings
     LANG_GUILD_INFO_EXTRA_INFO          = 1183,
     LANG_GUILD_INFO_RANKS               = 1184,
     LANG_GUILD_INFO_RANKS_LIST          = 1185,
-    // Room for more level 3              1186-1198 not used
+    LANG_COMMAND_BEASTMASTER_MODE       = 1186,
+    // Room for more level 3              1187-1198 not used
 
     // Debug commands
     LANG_DO_NOT_USE_6X_DEBUG_AREATRIGGER_LEFT = 1999,

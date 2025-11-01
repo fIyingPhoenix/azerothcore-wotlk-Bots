@@ -207,7 +207,7 @@ public:
                 Mrfloppy->GetMotionMaster()->MoveFollow(creature, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
 
             if (npc_escortAI* pEscortAI = CAST_AI(npc_emily::npc_emilyAI, (creature->AI())))
-                pEscortAI->Start(true, false, player->GetGUID());
+                pEscortAI->Start(true, player->GetGUID());
         }
         return true;
     }
@@ -589,78 +589,78 @@ public:
             case EVENT_WOUNDED_MOVE:
                 if (me->GetPositionY() == -2835.11f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_1, false);
-                    me->DespawnOrUnsummon(20000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_1, false);
+                    me->DespawnOrUnsummon(20s);
                 }
                 if (me->GetPositionY() == -2981.89f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_3, false);
-                    me->DespawnOrUnsummon(18000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_3, false);
+                    me->DespawnOrUnsummon(18s);
                 }
                 if (me->GetPositionY() == -2934.44f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_3, false);
-                    me->DespawnOrUnsummon(9000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_3, false);
+                    me->DespawnOrUnsummon(9s);
                 }
                 if (me->GetPositionY() == -3020.99f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_1, false);
-                    me->DespawnOrUnsummon(22000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_1, false);
+                    me->DespawnOrUnsummon(22s);
                 }
                 if (me->GetPositionY() == -2964.73f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_2, false);
-                    me->DespawnOrUnsummon(15000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_2, false);
+                    me->DespawnOrUnsummon(15s);
                 }
                 if (me->GetPositionY() == -2940.50f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_1, false);
-                    me->DespawnOrUnsummon(20000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_1, false);
+                    me->DespawnOrUnsummon(20s);
                 }
                 if (me->GetPositionY() == -2847.93f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_1, false);
-                    me->DespawnOrUnsummon(30000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_1, false);
+                    me->DespawnOrUnsummon(30s);
                 }
                 if (me->GetPositionY() == -2835.31f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_1, false);
-                    me->DespawnOrUnsummon(27000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_1, false);
+                    me->DespawnOrUnsummon(27s);
                 }
                 if (me->GetPositionY() == -2822.20f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_1, false);
-                    me->DespawnOrUnsummon(25000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_1, false);
+                    me->DespawnOrUnsummon(25s);
                 }
                 if (me->GetPositionY() == -2846.31f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_1, false);
-                    me->DespawnOrUnsummon(21000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_1, false);
+                    me->DespawnOrUnsummon(21s);
                 }
                 if (me->GetPositionY() == -2897.23f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_3, false);
-                    me->DespawnOrUnsummon(15000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_3, false);
+                    me->DespawnOrUnsummon(15s);
                 }
                 if (me->GetPositionY() == -2886.01f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_3, false);
-                    me->DespawnOrUnsummon(25000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_3, false);
+                    me->DespawnOrUnsummon(25s);
                 }
                 if (me->GetPositionY() == -2906.89f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_3, false);
-                    me->DespawnOrUnsummon(25000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_3, false);
+                    me->DespawnOrUnsummon(25s);
                 }
                 if (me->GetPositionY() == -3048.94f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_2, false);
-                    me->DespawnOrUnsummon(30000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_2, false);
+                    me->DespawnOrUnsummon(30s);
                 }
                 if (me->GetPositionY() == -2961.08f)
                 {
-                    me->GetMotionMaster()->MovePath(WOUNDED_MOVE_2, false);
-                    me->DespawnOrUnsummon(25000);
+                    me->GetMotionMaster()->MoveWaypoint(WOUNDED_MOVE_2, false);
+                    me->DespawnOrUnsummon(25s);
                 }
                 break;
             case EVENT_CLEAVE:
@@ -871,7 +871,7 @@ public:
         {
             if (_following)
                 if (!me->HasAura(SPELL_FROG_LOVE))
-                    me->DespawnOrUnsummon(1000);
+                    me->DespawnOrUnsummon(1s);
 
             _events.Update(diff);
 
@@ -898,7 +898,7 @@ public:
                         break;
                     case EVENT_LAKEFROG_5:
                         Talk(SAY_MAIDEN_1);
-                        me->DespawnOrUnsummon(4000);
+                        me->DespawnOrUnsummon(4s);
                         break;
                     default:
                         break;
@@ -1016,89 +1016,9 @@ class spell_infected_worgen_bite_aura : public AuraScript
 ## Quest: Riding the Red Rocket
 ######*/
 
-enum RedRocket
-{
-    SPELL_VEHICLE_WARHEAD_FUSE = 49107,
-    SPELL_ALLIANCE_KILL_CREDIT_TORPEDO = 49510,
-    SPELL_HORDE_KILL_CREDIT_TORPEDO = 49340,
-    NPC_HORDE_LUMBERBOAT = 27702,
-    NPC_ALLIANCE_LUMBERBOAT = 27688,
-    SPELL_DETONATE = 49250
-};
-
-class npc_rocket_propelled_warhead : public CreatureScript
-{
-public:
-    npc_rocket_propelled_warhead() : CreatureScript("npc_rocket_propelled_warhead") { }
-
-    struct npc_rocket_propelled_warheadAI : public VehicleAI
-    {
-        npc_rocket_propelled_warheadAI(Creature* creature) : VehicleAI(creature), _faction(ALLIANCE), _finished(false)
-        {
-        }
-
-        void PassengerBoarded(Unit* who, int8 /*seatId*/, bool apply) override
-        {
-            if (apply && who && who->ToPlayer())
-            {
-                DoCast(me, SPELL_VEHICLE_WARHEAD_FUSE);
-                _faction = who->ToPlayer()->GetTeamId();
-            }
-        }
-
-        void JustReachedHome() override
-        {
-            _finished = false;
-            me->SetVisible(true);
-            me->GetMotionMaster()->Clear(true);
-        }
-
-        void DoAction(int32 /*action*/) override
-        {
-            FinishQuest(false, _faction);
-        }
-
-        void SpellHit(Unit* caster, SpellInfo const* /*spellInfo*/) override
-        {
-            if (caster && (caster->GetEntry() == NPC_HORDE_LUMBERBOAT || caster->GetEntry() == NPC_ALLIANCE_LUMBERBOAT))
-            {
-                FinishQuest(true, _faction);
-            }
-        }
-
-        void FinishQuest(bool success, uint32 faction)
-        {
-            if (_finished)
-            {
-                return;
-            }
-
-            _finished = true;
-
-            if (success)
-            {
-                DoCast(me, faction == ALLIANCE ? SPELL_ALLIANCE_KILL_CREDIT_TORPEDO : SPELL_HORDE_KILL_CREDIT_TORPEDO, true);
-            }
-
-            DoCast(me, SPELL_DETONATE, true);
-            me->RemoveAllAuras();
-            me->SetVisible(false);
-            me->GetMotionMaster()->MoveTargetedHome();
-        }
-
-    private:
-        uint32 _faction;
-        bool _finished;
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_rocket_propelled_warheadAI(creature);
-    }
-};
-
 enum WarheadSpells
 {
+    SPELL_DETONATE = 49250,
     SPELL_WARHEAD_Z_CHECK = 61678,
     SPELL_WARHEAD_SEEKING_LUMBERSHIP = 49331,
     SPELL_WARHEAD_FUSE = 49181
@@ -1110,18 +1030,18 @@ class spell_vehicle_warhead_fuse : public SpellScript
 
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return sSpellMgr->GetSpellInfo(SPELL_WARHEAD_Z_CHECK)
-                && sSpellMgr->GetSpellInfo(SPELL_WARHEAD_SEEKING_LUMBERSHIP)
-                && sSpellMgr->GetSpellInfo(SPELL_WARHEAD_FUSE);
+        return ValidateSpellInfo({
+            SPELL_WARHEAD_Z_CHECK,
+            SPELL_WARHEAD_SEEKING_LUMBERSHIP,
+            SPELL_WARHEAD_FUSE
+        });
     }
 
     void HandleDummy(SpellEffIndex /*effIndex*/)
     {
         Unit* caster = GetCaster();
         if (!caster)
-        {
             return;
-        }
 
         caster->CastSpell(caster, SPELL_WARHEAD_Z_CHECK, true);
         caster->CastSpell(caster, SPELL_WARHEAD_SEEKING_LUMBERSHIP, true);
@@ -1147,7 +1067,7 @@ class spell_warhead_detonate : public SpellScript
 
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return sSpellMgr->GetSpellInfo(SPELL_PARACHUTE) && sSpellMgr->GetSpellInfo(SPELL_TORPEDO_EXPLOSION);
+        return ValidateSpellInfo({ SPELL_PARACHUTE, SPELL_TORPEDO_EXPLOSION });
     }
 
     void HandleDummy(SpellEffIndex /*effIndex*/)
@@ -1171,6 +1091,9 @@ class spell_warhead_detonate : public SpellScript
         {
             (*itr)->CastSpell((*itr), SPELL_TORPEDO_EXPLOSION, true);
         }
+
+        if (Creature* rocket = caster->ToCreature())
+            rocket->DespawnOrUnsummon();
     }
 
     void Register() override
@@ -1194,12 +1117,8 @@ class spell_z_check_aura : public AuraScript
         PreventDefaultAction();
 
         if (_posZ != GetTarget()->GetPositionZ())
-        {
             if (Creature* target = GetTarget()->ToCreature())
-            {
-                target->AI()->DoAction(0);
-            }
-        }
+                target->AI()->DoCastSelf(SPELL_DETONATE, true);
     }
 
     private:
@@ -1220,12 +1139,8 @@ class spell_warhead_fuse_aura : public AuraScript
     void HandleOnEffectRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         if (Unit* rocketUnit = GetTarget()->GetVehicleBase())
-        {
             if (Creature* rocketCrea = rocketUnit->ToCreature())
-            {
-                rocketCrea->AI()->DoAction(0);
-            }
-        }
+                rocketCrea->AI()->DoCastSelf(SPELL_DETONATE, true);
     }
 
     void Register() override
@@ -1271,7 +1186,6 @@ void AddSC_grizzly_hills()
     new npc_lake_frog();
     RegisterSpellScript(spell_shredder_delivery);
     RegisterSpellScript(spell_infected_worgen_bite_aura);
-    new npc_rocket_propelled_warhead();
     RegisterSpellScript(spell_z_check_aura);
     RegisterSpellScript(spell_warhead_detonate);
     RegisterSpellScript(spell_vehicle_warhead_fuse);

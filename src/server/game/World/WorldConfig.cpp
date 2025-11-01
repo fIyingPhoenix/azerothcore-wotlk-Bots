@@ -85,6 +85,9 @@ void WorldConfig::BuildConfigCache()
     SetConfigValue<float>(RATE_BUYVALUE_ITEM_HEIRLOOM, "Rate.BuyValue.Item.Heirloom", 1.0f);
 
     SetConfigValue<float>(RATE_REPUTATION_GAIN, "Rate.Reputation.Gain", 1.0f);
+    SetConfigValue<float>(RATE_REPUTATION_GAIN_AB, "Rate.Reputation.Gain.AB", 1.0f);
+    SetConfigValue<float>(RATE_REPUTATION_GAIN_AV, "Rate.Reputation.Gain.AV", 1.0f);
+    SetConfigValue<float>(RATE_REPUTATION_GAIN_WSG, "Rate.Reputation.Gain.WSG", 1.0f);
     SetConfigValue<float>(RATE_REPUTATION_LOWLEVEL_KILL, "Rate.Reputation.LowLevel.Kill", 1.0f);
     SetConfigValue<float>(RATE_REPUTATION_LOWLEVEL_QUEST, "Rate.Reputation.LowLevel.Quest", 1.0f);
     SetConfigValue<float>(RATE_REPUTATION_RECRUIT_A_FRIEND_BONUS, "Rate.Reputation.RecruitAFriendBonus", 0.1f);
@@ -160,6 +163,7 @@ void WorldConfig::BuildConfigCache()
     SetConfigValue<uint32>(CONFIG_INTERVAL_SAVE, "PlayerSaveInterval", 900000);
     SetConfigValue<uint32>(CONFIG_INTERVAL_DISCONNECT_TOLERANCE, "DisconnectToleranceInterval", 0);
     SetConfigValue<bool>(CONFIG_STATS_SAVE_ONLY_ON_LOGOUT, "PlayerSave.Stats.SaveOnlyOnLogout", true);
+    SetConfigValue<bool>(CONFIG_VALIDATE_SKILL_LEARNED_BY_SPELLS, "ValidateSkillLearnedBySpells", true);
 
     SetConfigValue<uint32>(CONFIG_MIN_LEVEL_STAT_SAVE, "PlayerSave.Stats.MinLevel", 0, ConfigValueCache::Reloadable::Yes, [](uint32 const& value) { return value < MAX_LEVEL; }, "< MAX_LEVEL");
 
@@ -406,6 +410,7 @@ void WorldConfig::BuildConfigCache()
     SetConfigValue<float>(CONFIG_LISTEN_RANGE_TEXTEMOTE, "ListenRange.TextEmote", 40.0f);
     SetConfigValue<float>(CONFIG_LISTEN_RANGE_YELL, "ListenRange.Yell", 300.0f);
 
+    SetConfigValue<uint32>(CONFIG_BATTLEGROUND_PREP_TIME, "Battleground.PrepTime", 120);
     SetConfigValue<uint32>(CONFIG_BATTLEGROUND_OVERRIDE_LOWLEVELS_MINPLAYERS, "Battleground.Override.LowLevels.MinPlayers", 0);
     SetConfigValue<bool>(CONFIG_BATTLEGROUND_DISABLE_QUEST_SHARE_IN_BG, "Battleground.DisableQuestShareInBG", false);
     SetConfigValue<bool>(CONFIG_BATTLEGROUND_DISABLE_READY_CHECK_IN_BG, "Battleground.DisableReadyCheckInBG", false);
@@ -436,6 +441,7 @@ void WorldConfig::BuildConfigCache()
     SetConfigValue<uint32>(CONFIG_BATTLEGROUND_ALTERAC_REP_ONBOSSDEATH, "Battleground.Alterac.ReputationOnBossDeath", 350);
     SetConfigValue<uint32>(CONFIG_BATTLEGROUND_EYEOFTHESTORM_CAPTUREPOINTS, "Battleground.EyeOfTheStorm.CapturePoints", 1600);
 
+    SetConfigValue<uint32>(CONFIG_ARENA_PREP_TIME, "Arena.PrepTime", 60);
     SetConfigValue<uint32>(CONFIG_ARENA_MAX_RATING_DIFFERENCE, "Arena.MaxRatingDifference", 150);
     SetConfigValue<uint32>(CONFIG_ARENA_RATING_DISCARD_TIMER, "Arena.RatingDiscardTimer", 600000);
     SetConfigValue<uint32>(CONFIG_ARENA_PREV_OPPONENTS_DISCARD_TIMER, "Arena.PreviousOpponentsDiscardTimer", 120000);
@@ -456,6 +462,7 @@ void WorldConfig::BuildConfigCache()
     SetConfigValue<uint32>(CONFIG_ARENA_QUEUE_ANNOUNCER_DETAIL, "Arena.QueueAnnouncer.Detail", 3);
 
     SetConfigValue<bool>(CONFIG_OFFHAND_CHECK_AT_SPELL_UNLEARN, "OffhandCheckAtSpellUnlearn", true);
+    SetConfigValue<bool>(CONFIG_CREATURE_REPOSITION_AGAINST_NPCS, "Creature.RepositionAgainstNpcs", true);
     SetConfigValue<uint32>(CONFIG_CREATURE_STOP_FOR_PLAYER, "Creature.MovingStopTimeForPlayer", 180000);
 
     SetConfigValue<uint32>(CONFIG_WATER_BREATH_TIMER, "WaterBreath.Timer", 180000, ConfigValueCache::Reloadable::Yes, [](uint32 const& value) { return value > 0; }, "> 0");
@@ -489,6 +496,8 @@ void WorldConfig::BuildConfigCache()
 
     SetConfigValue<bool>(CONFIG_LEAVE_GROUP_ON_LOGOUT, "LeaveGroupOnLogout.Enabled", false);
 
+    SetConfigValue<uint32>(CONFIG_RANDOM_ROLL_MAXIMUM, "Group.RandomRollMaximum", 1000000);
+
     SetConfigValue<bool>(CONFIG_QUEST_POI_ENABLED, "QuestPOI.Enabled", true);
 
     SetConfigValue<uint32>(CONFIG_CHANGE_FACTION_MAX_MONEY, "ChangeFaction.MaxMoney", 0);
@@ -498,6 +507,8 @@ void WorldConfig::BuildConfigCache()
     SetConfigValue<bool>(CONFIG_MUNCHING_BLIZZLIKE, "MunchingBlizzlike.Enabled", true);
 
     SetConfigValue<bool>(CONFIG_ENABLE_DAZE, "Daze.Enabled", true);
+
+    SetConfigValue<bool>(CONFIG_ENABLE_INFINITEAMMO, "InfiniteAmmo.Enabled", false);
 
     SetConfigValue<uint32>(CONFIG_DAILY_RBG_MIN_LEVEL_AP_REWARD, "DailyRBGArenaPoints.MinLevel", 71);
 
@@ -651,7 +662,11 @@ void WorldConfig::BuildConfigCache()
     SetConfigValue<bool>(CONFIG_SPELL_QUEUE_ENABLED, "SpellQueue.Enabled", true);
     SetConfigValue<uint32>(CONFIG_SPELL_QUEUE_WINDOW, "SpellQueue.Window", 400);
 
+    // World State
     SetConfigValue<uint32>(CONFIG_SUNSREACH_COUNTER_MAX, "Sunsreach.CounterMax", 10000);
+    SetConfigValue<uint32>(CONFIG_SCOURGEINVASION_COUNTER_FIRST, "ScourgeInvasion.CounterFirst", 50);
+    SetConfigValue<uint32>(CONFIG_SCOURGEINVASION_COUNTER_SECOND, "ScourgeInvasion.CounterSecond", 100);
+    SetConfigValue<uint32>(CONFIG_SCOURGEINVASION_COUNTER_THIRD, "ScourgeInvasion.CounterThird", 150);
 
     SetConfigValue<std::string>(CONFIG_NEW_CHAR_STRING, "PlayerStart.String", "");
 }
