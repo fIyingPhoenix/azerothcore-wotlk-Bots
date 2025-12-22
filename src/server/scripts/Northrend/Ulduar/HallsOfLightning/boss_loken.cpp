@@ -1,14 +1,14 @@
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Affero General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
  * You should have received a copy of the GNU General Public License along
@@ -25,13 +25,11 @@
 enum LokenSpells
 {
     SPELL_ARC_LIGHTNING             = 52921,
-    SPELL_LIGHTNING_NOVA_N          = 52960,
-    SPELL_LIGHTNING_NOVA_H          = 59835,
+    SPELL_LIGHTNING_NOVA            = 52960,
     SPELL_LIGHTNING_NOVA_VISUAL     = 56502,
     SPELL_LIGHTNING_NOVA_THUNDERS   = 52663,
 
-    SPELL_PULSING_SHOCKWAVE_N       = 52961,
-    SPELL_PULSING_SHOCKWAVE_H       = 59836,
+    SPELL_PULSING_SHOCKWAVE         = 52961,
 
     // Achievement
     ACHIEVEMENT_TIMELY_DEATH        = 20384
@@ -146,10 +144,10 @@ struct boss_loken : public BossAI
                 events.DelayEvents(5s);
                 events.ScheduleEvent(EVENT_AURA_REMOVE, me->GetMap()->IsHeroic() ? 4s : 5s);
 
-                me->CastSpell(me, me->GetMap()->IsHeroic() ? SPELL_LIGHTNING_NOVA_H : SPELL_LIGHTNING_NOVA_N, false);
+                me->CastSpell(me, SPELL_LIGHTNING_NOVA, false);
                 break;
             case EVENT_SHOCKWAVE:
-                me->CastSpell(me, me->GetMap()->IsHeroic() ? SPELL_PULSING_SHOCKWAVE_H : SPELL_PULSING_SHOCKWAVE_N, false);
+                me->CastSpell(me, SPELL_PULSING_SHOCKWAVE, false);
                 break;
             case EVENT_ARC_LIGHTNING:
                 if (Unit* target = SelectTargetFromPlayerList(100, SPELL_ARC_LIGHTNING))

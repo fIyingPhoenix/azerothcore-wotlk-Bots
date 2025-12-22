@@ -1,14 +1,14 @@
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Affero General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
  * You should have received a copy of the GNU General Public License along
@@ -51,6 +51,7 @@
 #include "QuestDef.h"
 #include "ReputationMgr.h"
 #include "ScriptMgr.h"
+#include "ScriptObjectFwd.h"
 #include "SocialMgr.h"
 #include "Spell.h"
 #include "SpellAuraEffects.h"
@@ -59,6 +60,7 @@
 #include "StringConvert.h"
 #include "Tokenize.h"
 #include "Transport.h"
+#include "Unit.h"
 #include "UpdateFieldFlags.h"
 #include "Util.h"
 #include "World.h"
@@ -539,7 +541,7 @@ Item* Player::GetShield(bool useable) const
     return item;
 }
 
-uint8 Player::GetAttackBySlot(uint8 slot)
+WeaponAttackType Player::GetAttackBySlot(uint8 slot)
 {
     switch (slot)
     {
@@ -1872,8 +1874,13 @@ InventoryResult Player::CanEquipItem(uint8 slot, uint16& dest, Item* pItem, bool
                             return EQUIP_ERR_NOT_DURING_ARENA_MATCH;
                 }
 
-                if (IsInCombat() && (pProto->Class == ITEM_CLASS_WEAPON || pProto->InventoryType == INVTYPE_RELIC) && m_weaponChangeTimer != 0)
-                    return EQUIP_ERR_CANT_DO_RIGHT_NOW;         // maybe exist better err
+                if (IsInCombat() && (pProto->Class == ITEM_CLASS_WEAPON || pProto->InventoryType == INVTYPE_RELIC))
+                {
+                    uint32 cooldownSpell = IsClass(CLASS_ROGUE, CLASS_CONTEXT_WEAPON_SWAP) ? 6123 : 6119;
+                    uint32 startRecoveryTime = sSpellMgr->GetSpellInfo(cooldownSpell)->StartRecoveryTime;
+                    if (m_weaponChangeTimer != 0 && m_weaponChangeTimer != startRecoveryTime)
+                        return EQUIP_ERR_CANT_DO_RIGHT_NOW;         // maybe exist better err
+                }
 
                 if (IsNonMeleeSpellCast(false))
                     return EQUIP_ERR_CANT_DO_RIGHT_NOW;
@@ -2782,7 +2789,7 @@ Item* Player::EquipItem(uint16 pos, Item* pItem, bool update)
 
                     WorldPacket data;
                     BuildCooldownPacket(data, SPELL_COOLDOWN_FLAG_INCLUDE_GCD, cooldownSpell, 0);
-                    GetSession()->SendPacket(&data);
+                    SendDirectMessage(&data);
                 }
             }
         }
@@ -2915,7 +2922,7 @@ void Player::VisualizeItem(uint8 slot, Item* pItem)
     pItem->SetState(ITEM_CHANGED, this);
 }
 
-void Player::RemoveItem(uint8 bag, uint8 slot, bool update, bool swap)
+void Player::RemoveItem(uint8 bag, uint8 slot, bool update)
 {
     // note: removeitem does not actually change the item
     // it only takes the item out of storage temporarily
@@ -2950,12 +2957,6 @@ void Player::RemoveItem(uint8 bag, uint8 slot, bool update, bool swap)
             // remove item dependent auras and casts (only weapon and armor slots)
             if (slot < INVENTORY_SLOT_BAG_END && slot < EQUIPMENT_SLOT_END)
             {
-                // Xinef: Ensure that this function is called for places with swap=true
-                if (!swap)
-                {
-                    RemoveItemDependentAurasAndCasts(pItem);
-                }
-
                 // remove held enchantments, update expertise
                 if (slot == EQUIPMENT_SLOT_MAINHAND)
                 {
@@ -3090,9 +3091,6 @@ void Player::DestroyItem(uint8 bag, uint8 slot, bool update)
 
             if (slot < EQUIPMENT_SLOT_END)
             {
-                // remove item dependent auras and casts (only weapon and armor slots)
-                RemoveItemDependentAurasAndCasts(pItem);
-
                 // update expertise and armor penetration - passive auras may need it
                 switch (slot)
                 {
@@ -3884,8 +3882,8 @@ void Player::SwapItem(uint16 src, uint16 dst)
     }
 
     // now do moves, remove...
-    RemoveItem(dstbag, dstslot, false, true);
-    RemoveItem(srcbag, srcslot, false, true);
+    RemoveItem(dstbag, dstslot, false);
+    RemoveItem(srcbag, srcslot, false);
 
     // add to dest
     if (IsInventoryPos(dst))
@@ -4076,7 +4074,7 @@ void Player::SendEquipError(InventoryResult msg, Item* pItem, Item* pItem2, uint
                 break;
         }
     }
-    GetSession()->SendPacket(&data);
+    SendDirectMessage(&data);
 }
 
 void Player::SendBuyError(BuyResult msg, Creature* creature, uint32 item, uint32 param)
@@ -4088,7 +4086,7 @@ void Player::SendBuyError(BuyResult msg, Creature* creature, uint32 item, uint32
     if (param > 0)
         data << uint32(param);
     data << uint8(msg);
-    GetSession()->SendPacket(&data);
+    SendDirectMessage(&data);
 }
 
 void Player::SendSellError(SellResult msg, Creature* creature, ObjectGuid guid, uint32 param)
@@ -4100,7 +4098,7 @@ void Player::SendSellError(SellResult msg, Creature* creature, ObjectGuid guid, 
     if (param > 0)
         data << uint32(param);
     data << uint8(msg);
-    GetSession()->SendPacket(&data);
+    SendDirectMessage(&data);
 }
 
 void Player::TradeCancel(bool sendback, TradeStatus status /*= TRADE_STATUS_TRADE_CANCELED*/)
@@ -4374,13 +4372,12 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                     // processed in Player::CastItemCombatSpell
                     break;
                 case ITEM_ENCHANTMENT_TYPE_DAMAGE:
-                    if (item->GetSlot() == EQUIPMENT_SLOT_MAINHAND)
-                        HandleStatModifier(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_VALUE, float(enchant_amount), apply);
-                    else if (item->GetSlot() == EQUIPMENT_SLOT_OFFHAND)
-                        HandleStatModifier(UNIT_MOD_DAMAGE_OFFHAND, TOTAL_VALUE, float(enchant_amount), apply);
-                    else if (item->GetSlot() == EQUIPMENT_SLOT_RANGED)
-                        HandleStatModifier(UNIT_MOD_DAMAGE_RANGED, TOTAL_VALUE, float(enchant_amount), apply);
+                {
+                    WeaponAttackType const attackType = Player::GetAttackBySlot(item->GetSlot());
+                    if (attackType != MAX_ATTACK)
+                        UpdateDamageDoneMods(attackType, apply ? -1 : slot);
                     break;
+                }
                 case ITEM_ENCHANTMENT_TYPE_EQUIP_SPELL:
                     if (enchant_spell_id)
                     {
@@ -4431,7 +4428,7 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                         }
                     }
 
-                    HandleStatModifier(UnitMods(UNIT_MOD_RESISTANCE_START + enchant_spell_id), TOTAL_VALUE, float(enchant_amount), apply);
+                    HandleStatFlatModifier(UnitMods(UNIT_MOD_RESISTANCE_START + enchant_spell_id), TOTAL_VALUE, float(enchant_amount), apply);
                     break;
                 case ITEM_ENCHANTMENT_TYPE_STAT:
                 {
@@ -4458,36 +4455,36 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                     {
                         case ITEM_MOD_MANA:
                             LOG_DEBUG("entities.player.items", "+ {} MANA", enchant_amount);
-                            HandleStatModifier(UNIT_MOD_MANA, BASE_VALUE, float(enchant_amount), apply);
+                            HandleStatFlatModifier(UNIT_MOD_MANA, BASE_VALUE, float(enchant_amount), apply);
                             break;
                         case ITEM_MOD_HEALTH:
                             LOG_DEBUG("entities.player.items", "+ {} HEALTH", enchant_amount);
-                            HandleStatModifier(UNIT_MOD_HEALTH, BASE_VALUE, float(enchant_amount), apply);
+                            HandleStatFlatModifier(UNIT_MOD_HEALTH, BASE_VALUE, float(enchant_amount), apply);
                             break;
                         case ITEM_MOD_AGILITY:
                             LOG_DEBUG("entities.player.items", "+ {} AGILITY", enchant_amount);
-                            HandleStatModifier(UNIT_MOD_STAT_AGILITY, TOTAL_VALUE, float(enchant_amount), apply);
-                            ApplyStatBuffMod(STAT_AGILITY, (float)enchant_amount, apply);
+                            HandleStatFlatModifier(UNIT_MOD_STAT_AGILITY, TOTAL_VALUE, float(enchant_amount), apply);
+                            UpdateStatBuffMod(STAT_AGILITY);
                             break;
                         case ITEM_MOD_STRENGTH:
                             LOG_DEBUG("entities.player.items", "+ {} STRENGTH", enchant_amount);
-                            HandleStatModifier(UNIT_MOD_STAT_STRENGTH, TOTAL_VALUE, float(enchant_amount), apply);
-                            ApplyStatBuffMod(STAT_STRENGTH, (float)enchant_amount, apply);
+                            HandleStatFlatModifier(UNIT_MOD_STAT_STRENGTH, TOTAL_VALUE, float(enchant_amount), apply);
+                            UpdateStatBuffMod(STAT_STRENGTH);
                             break;
                         case ITEM_MOD_INTELLECT:
                             LOG_DEBUG("entities.player.items", "+ {} INTELLECT", enchant_amount);
-                            HandleStatModifier(UNIT_MOD_STAT_INTELLECT, TOTAL_VALUE, float(enchant_amount), apply);
-                            ApplyStatBuffMod(STAT_INTELLECT, (float)enchant_amount, apply);
+                            HandleStatFlatModifier(UNIT_MOD_STAT_INTELLECT, TOTAL_VALUE, float(enchant_amount), apply);
+                            UpdateStatBuffMod(STAT_INTELLECT);
                             break;
                         case ITEM_MOD_SPIRIT:
                             LOG_DEBUG("entities.player.items", "+ {} SPIRIT", enchant_amount);
-                            HandleStatModifier(UNIT_MOD_STAT_SPIRIT, TOTAL_VALUE, float(enchant_amount), apply);
-                            ApplyStatBuffMod(STAT_SPIRIT, (float)enchant_amount, apply);
+                            HandleStatFlatModifier(UNIT_MOD_STAT_SPIRIT, TOTAL_VALUE, float(enchant_amount), apply);
+                            UpdateStatBuffMod(STAT_SPIRIT);
                             break;
                         case ITEM_MOD_STAMINA:
                             LOG_DEBUG("entities.player.items", "+ {} STAMINA", enchant_amount);
-                            HandleStatModifier(UNIT_MOD_STAT_STAMINA, TOTAL_VALUE, float(enchant_amount), apply);
-                            ApplyStatBuffMod(STAT_STAMINA, (float)enchant_amount, apply);
+                            HandleStatFlatModifier(UNIT_MOD_STAT_STAMINA, TOTAL_VALUE, float(enchant_amount), apply);
+                            UpdateStatBuffMod(STAT_STAMINA);
                             break;
                         case ITEM_MOD_DEFENSE_SKILL_RATING:
                             ApplyRatingMod(CR_DEFENSE_SKILL, enchant_amount, apply);
@@ -4598,12 +4595,12 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                             LOG_DEBUG("entities.player.items", "+ {} EXPERTISE", enchant_amount);
                             break;
                         case ITEM_MOD_ATTACK_POWER:
-                            HandleStatModifier(UNIT_MOD_ATTACK_POWER, TOTAL_VALUE, float(enchant_amount), apply);
-                            HandleStatModifier(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_VALUE, float(enchant_amount), apply);
+                            HandleStatFlatModifier(UNIT_MOD_ATTACK_POWER, TOTAL_VALUE, float(enchant_amount), apply);
+                            HandleStatFlatModifier(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_VALUE, float(enchant_amount), apply);
                             LOG_DEBUG("entities.player.items", "+ {} ATTACK_POWER", enchant_amount);
                             break;
                         case ITEM_MOD_RANGED_ATTACK_POWER:
-                            HandleStatModifier(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_VALUE, float(enchant_amount), apply);
+                            HandleStatFlatModifier(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_VALUE, float(enchant_amount), apply);
                             LOG_DEBUG("entities.player.items", "+ {} RANGED_ATTACK_POWER", enchant_amount);
                             break;
                             //                        case ITEM_MOD_FERAL_ATTACK_POWER:
@@ -4631,7 +4628,7 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                             LOG_DEBUG("entities.player.items", "+ {} SPELL_PENETRATION", enchant_amount);
                             break;
                         case ITEM_MOD_BLOCK_VALUE:
-                            HandleBaseModValue(SHIELD_BLOCK_VALUE, FLAT_MOD, float(enchant_amount), apply);
+                            HandleBaseModFlatValue(SHIELD_BLOCK_VALUE, float(enchant_amount), apply);
                             LOG_DEBUG("entities.player.items", "+ {} BLOCK_VALUE", enchant_amount);
                             break;
                         /// @deprecated item mods
@@ -4650,20 +4647,9 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                 }
                 case ITEM_ENCHANTMENT_TYPE_TOTEM:           // Shaman Rockbiter Weapon
                 {
-                    if (IsClass(CLASS_SHAMAN, CLASS_CONTEXT_ABILITY))
-                    {
-                        float addValue = 0.0f;
-                        if (item->GetSlot() == EQUIPMENT_SLOT_MAINHAND)
-                        {
-                            addValue = float(enchant_amount * item->GetTemplate()->Delay / 1000.0f);
-                            HandleStatModifier(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_VALUE, addValue, apply);
-                        }
-                        else if (item->GetSlot() == EQUIPMENT_SLOT_OFFHAND)
-                        {
-                            addValue = float(enchant_amount * item->GetTemplate()->Delay / 1000.0f);
-                            HandleStatModifier(UNIT_MOD_DAMAGE_OFFHAND, TOTAL_VALUE, addValue, apply);
-                        }
-                    }
+                    WeaponAttackType const attackType = Player::GetAttackBySlot(item->GetSlot());
+                    if (attackType != MAX_ATTACK)
+                        UpdateDamageDoneMods(attackType);
                     break;
                 }
                 case ITEM_ENCHANTMENT_TYPE_USE_SPELL:
@@ -4795,7 +4781,7 @@ void Player::SendNewItem(Item* item, uint32 count, bool received, bool created, 
     if (broadcast && GetGroup())
         GetGroup()->BroadcastPacket(&data, true);
     else
-        GetSession()->SendPacket(&data);
+        SendDirectMessage(&data);
 }
 
 /*********************************************************/
@@ -6327,7 +6313,7 @@ void Player::_LoadQuestStatus(PreparedQueryResult result)
                     ++slot;
                 }
 
-                LOG_DEBUG("entities.player.loading", "Quest status is {{}} for quest {{}} for player ({})", questStatusData.Status, quest_id, GetGUID().ToString());
+                LOG_DEBUG("entities.player.loading", "Quest status is ({}) for quest ({}) for player ({})", questStatusData.Status, quest_id, GetGUID().ToString());
             }
         } while (result->NextRow());
     }
@@ -6438,7 +6424,7 @@ void Player::_LoadWeeklyQuestStatus(PreparedQueryResult result)
                 continue;
 
             m_weeklyquests.insert(quest_id);
-            LOG_DEBUG("entities.player.loading", "Weekly quest {{}} cooldown for player ({})", quest_id, GetGUID().ToString());
+            LOG_DEBUG("entities.player.loading", "Weekly quest ({}) cooldown for player ({})", quest_id, GetGUID().ToString());
         } while (result->NextRow());
     }
 
@@ -6461,7 +6447,7 @@ void Player::_LoadSeasonalQuestStatus(PreparedQueryResult result)
                 continue;
 
             m_seasonalquests[event_id].insert(quest_id);
-            LOG_DEBUG("entities.player.loading", "Seasonal quest {{}} cooldown for player ({})", quest_id, GetGUID().ToString());
+            LOG_DEBUG("entities.player.loading", "Seasonal quest ({}) cooldown for player ({})", quest_id, GetGUID().ToString());
         } while (result->NextRow());
     }
 
@@ -6483,7 +6469,7 @@ void Player::_LoadMonthlyQuestStatus(PreparedQueryResult result)
                 continue;
 
             m_monthlyquests.insert(quest_id);
-            LOG_DEBUG("entities.player.loading", "Monthly quest {{}} cooldown for player ({})", quest_id, GetGUID().ToString());
+            LOG_DEBUG("entities.player.loading", "Monthly quest ({}) cooldown for player ({})", quest_id, GetGUID().ToString());
         } while (result->NextRow());
     }
 
@@ -6545,7 +6531,7 @@ void Player::BindToInstance()
 
     WorldPacket data(SMSG_INSTANCE_SAVE_CREATED, 4);
     data << uint32(0);
-    GetSession()->SendPacket(&data);
+    SendDirectMessage(&data);
     sInstanceSaveMgr->PlayerBindToInstance(this->GetGUID(), mapSave, true, this);
 }
 
@@ -6580,7 +6566,7 @@ void Player::SendRaidInfo()
         }
     }
     data.put<uint32>(p_counter, counter);
-    GetSession()->SendPacket(&data);
+    SendDirectMessage(&data);
 }
 
 /*
@@ -6607,7 +6593,7 @@ void Player::SendSavedInstances()
     //Send opcode 811. true or false means, whether you have current raid/heroic instances
     data.Initialize(SMSG_UPDATE_INSTANCE_OWNERSHIP);
     data << uint32(hasBeenSaved);
-    GetSession()->SendPacket(&data);
+    SendDirectMessage(&data);
 
     if (!hasBeenSaved)
         return;
@@ -6621,7 +6607,7 @@ void Player::SendSavedInstances()
             {
                 data.Initialize(SMSG_UPDATE_LAST_INSTANCE);
                 data << uint32(itr->second.save->GetMapId());
-                GetSession()->SendPacket(&data);
+                SendDirectMessage(&data);
             }
         }
     }

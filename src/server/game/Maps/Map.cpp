@@ -1,14 +1,14 @@
 /*
  * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
  *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Affero General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
  * more details.
  *
  * You should have received a copy of the GNU General Public License along
@@ -1691,7 +1691,7 @@ void Map::SendInitTransports(Player* player)
 
     WorldPacket packet;
     transData.BuildPacket(packet);
-    player->GetSession()->SendPacket(&packet);
+    player->SendDirectMessage(&packet);
 }
 
 void Map::SendRemoveTransports(Player* player)
@@ -1710,7 +1710,7 @@ void Map::SendRemoveTransports(Player* player)
 
     WorldPacket packet;
     transData.BuildPacket(packet);
-    player->GetSession()->SendPacket(&packet);
+    player->SendDirectMessage(&packet);
 }
 
 void Map::SendObjectUpdates()
@@ -1736,7 +1736,7 @@ void Map::SendObjectUpdates()
         }
 
         iter->second.BuildPacket(packet);
-        iter->first->GetSession()->SendPacket(&packet);
+        iter->first->SendDirectMessage(&packet);
         packet.clear();                                     // clean the string
     }
 }
@@ -1856,7 +1856,7 @@ uint32 Map::GetPlayersCountExceptGMs() const
 void Map::SendToPlayers(WorldPacket const* data) const
 {
     for (MapRefMgr::const_iterator itr = m_mapRefMgr.begin(); itr != m_mapRefMgr.end(); ++itr)
-        itr->GetSource()->GetSession()->SendPacket(data);
+        itr->GetSource()->SendDirectMessage(data);
 }
 
 template bool Map::AddToMap(Corpse*, bool);
@@ -2061,7 +2061,7 @@ bool InstanceMap::AddPlayerToMap(Player* player)
             data << uint32(60000);
             data << uint32(instance_data ? instance_data->GetCompletedEncounterMask() : 0);
             data << uint8(0);
-            player->GetSession()->SendPacket(&data);
+            player->SendDirectMessage(&data);
             player->SetPendingBind(mapSave->GetInstanceId(), 60000);
         }
     }
@@ -2233,7 +2233,7 @@ void InstanceMap::PermBindAllPlayers()
         {
             WorldPacket data(SMSG_INSTANCE_SAVE_CREATED, 4);
             data << uint32(0);
-            player->GetSession()->SendPacket(&data);
+            player->SendDirectMessage(&data);
             sInstanceSaveMgr->PlayerBindToInstance(player->GetGUID(), save, true, player);
         }
 
